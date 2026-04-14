@@ -6,6 +6,8 @@
 #include <imgui.h>
 
 #include "DesktopWorkbench.hpp"
+#include "Viewport3DWindow.hpp"
+#include "Viewport3DWindowVulkan.hpp"
 #include "owl/core/Application.hpp"
 #include "owl/device/GrblController.hpp"
 #include "owl/render/RenderBackendFactory.hpp"
@@ -47,7 +49,7 @@ owl::render::BackendType ParseBackend(int argc, char** argv)
             return owl::render::BackendType::OpenGL;
         }
     }
-    return owl::render::BackendType::OpenGL;
+    return owl::render::BackendType::Vulkan;
 }
 
 void DrawPathPreview2D(const std::vector<owl::render::Polyline3D>& polylines)
@@ -228,7 +230,7 @@ int main(int argc, char** argv)
     g_window.hWnd = ::CreateWindowW(
         wc.lpszClassName,
         L"OneLineWriter",
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         100,
         100,
         1400,
@@ -256,6 +258,13 @@ int main(int argc, char** argv)
     owl::desktop::DesktopWorkbench workbench;
     const bool exported = workbench.BuildAndExport();
 
+    owl::desktop::Viewport3DWindow viewport3dOpenGL;
+    owl::desktop::Viewport3DWindowVulkan viewport3dVulkan;
+    const bool useVulkanViewport = backendType == owl::render::BackendType::Vulkan;
+    const bool viewportInitOk = useVulkanViewport
+        ? viewport3dVulkan.Initialize(g_window.hWnd)
+        : viewport3dOpenGL.Initialize(g_window.hWnd, g_window.hDC, g_window.hGLRC);
+
     auto backend = owl::render::CreateRenderBackend(backendType);
     owl::render::RenderService renderService(std::move(backend));
     owl::render::RenderInitOptions renderInit {};
@@ -275,6 +284,7 @@ int main(int argc, char** argv)
     }
     std::cout << "Export: " << (exported ? "OK" : "FAILED") << " -> " << workbench.OutputPath() << '\n';
     std::cout << "Render backend: " << (backendType == owl::render::BackendType::Vulkan ? "Vulkan" : "OpenGL") << '\n';
+    std::cout << "3D viewport: " << (viewportInitOk ? "OK" : "FAILED") << '\n';
 
     bool done = false;
     while (!done)
@@ -303,6 +313,14 @@ int main(int argc, char** argv)
         renderService.Draw(camera, previewPolylines);
         const auto frameStats = renderService.LastFrameStats();
         DrawPathPreview2D(previewPolylines);
+        if (useVulkanViewport)
+        {
+            viewport3dVulkan.DrawImGuiPanel(previewPolylines);
+        }
+        else
+        {
+            viewport3dOpenGL.DrawImGuiPanel(previewPolylines);
+        }
 
         ImGui::Begin("Render Stats");
         ImGui::Text("Backend: %s", backendType == owl::render::BackendType::Vulkan ? "Vulkan" : "OpenGL");
@@ -328,6 +346,14 @@ int main(int argc, char** argv)
 
     controller.Disconnect();
     renderService.Shutdown();
+    if (useVulkanViewport)
+    {
+        viewport3dVulkan.Shutdown();
+    }
+    else
+    {
+        viewport3dOpenGL.Shutdown();
+    }
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplWin32_Shutdown();

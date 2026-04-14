@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake: configure (preset 123)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--preset", "123"],
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake: build (preset 123-debug)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "--preset", "123-debug"],
+      "problemMatcher": ["$msCompile"],
+      "group": "build",
+      "dependsOn": ["cmake: configure (preset 123)"]
+    }
+  ]
+}
+
