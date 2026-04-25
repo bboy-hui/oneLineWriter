@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 
+# vcpkg 工具链
+set(CMAKE_TOOLCHAIN_FILE "D:/software/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain")
+
 project(
     OneLineWriter
     VERSION 0.1.0
@@ -7,28 +10,29 @@ project(
     LANGUAGES CXX
 )
 
-include(cmake/CompilerOptions.cmake)
+# C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(OWL_BUILD_DESKTOP "Build desktop executable" ON)
-option(OWL_ENABLE_VULKAN_BACKEND "Enable Vulkan renderer backend support" ON)
-option(OWL_ENABLE_OPENGL_BACKEND "Enable OpenGL renderer backend support" ON)
+# 输出目录配置
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
-if(EXISTS "${CMAKE_SOURCE_DIR}/3rd/spdlog/CMakeLists.txt")
-    set(SPDLOG_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_BUILD_BENCH OFF CACHE BOOL "" FORCE)
-    set(SPDLOG_BUILD_SHARED OFF CACHE BOOL "" FORCE)
-    add_subdirectory(3rd/spdlog)
+option(OLW_BUILD_DESKTOP "Build desktop executable" ON)
+option(BUILD_TEST "Build test executable" OFF)
+
+# 核心静态库
+add_subdirectory(src)
+
+# 带界面的可执行文件
+if(OLW_BUILD_DESKTOP)
+    add_subdirectory(apps)
 endif()
 
-add_library(owl_project_options INTERFACE)
-owl_apply_compiler_options(owl_project_options)
-
-add_subdirectory(src/core)
-add_subdirectory(src/render)
-add_subdirectory(src/gcode)
-add_subdirectory(src/device)
-
-if(OWL_BUILD_DESKTOP)
-    add_subdirectory(apps/desktop)
+# 测试可执行文件
+if(BUILD_TEST)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

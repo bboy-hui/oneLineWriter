@@ -1,28 +1,16 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug owl_desktop (CMake Tools)",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${command:cmake.launchTargetPath}",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "console": "integratedTerminal",
-      "preLaunchTask": "cmake: build (preset 123-debug)"
-    },
-    {
-      "name": "Debug owl_desktop (preset 123-debug path)",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/out/build/123/apps/desktop/Debug/owl_desktop.exe",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "console": "integratedTerminal",
-      "preLaunchTask": "cmake: build (preset 123-debug)"
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "oneLineWriter-Debug",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Debug/owl_desktop.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        }
+    ]
 }
-
